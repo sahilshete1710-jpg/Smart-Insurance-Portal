@@ -1,0 +1,69 @@
+CREATE DATABASE IF NOT EXISTS insurance_management
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE insurance_management;
+
+CREATE TABLE IF NOT EXISTS users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(100) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS customers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  full_name VARCHAR(150) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  phone VARCHAR(30) NOT NULL,
+  dob DATE NULL,
+  address TEXT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS plans (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  category VARCHAR(100) NOT NULL,
+  coverage_amount DECIMAL(15,2) NOT NULL DEFAULT 0,
+  annual_premium DECIMAL(15,2) NOT NULL DEFAULT 0,
+  term_years INT NOT NULL DEFAULT 1,
+  description TEXT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS policies (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  policy_no VARCHAR(40) NOT NULL UNIQUE,
+  customer_id INT NOT NULL,
+  plan_id INT NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  premium DECIMAL(15,2) NOT NULL DEFAULT 0,
+  status ENUM('Active','Expired','Cancelled') NOT NULL DEFAULT 'Active',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_policy_customer FOREIGN KEY (customer_id) REFERENCES customers(id),
+  CONSTRAINT fk_policy_plan FOREIGN KEY (plan_id) REFERENCES plans(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS claims (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  claim_no VARCHAR(40) NOT NULL UNIQUE,
+  policy_id INT NOT NULL,
+  claim_amount DECIMAL(15,2) NOT NULL,
+  reason TEXT NOT NULL,
+  filed_on DATE NOT NULL,
+  status ENUM('Pending','Approved','Rejected') NOT NULL DEFAULT 'Pending',
+  remarks TEXT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_claim_policy FOREIGN KEY (policy_id) REFERENCES policies(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  reference VARCHAR(40) NOT NULL UNIQUE,
+  policy_id INT NOT NULL,
+  amount DECIMAL(15,2) NOT NULL,
+  paid_on DATE NOT NULL,
+  method VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_payment_policy FOREIGN KEY (policy_id) REFERENCES policies(id)
+) ENGINE=InnoDB;
